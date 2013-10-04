@@ -8,6 +8,8 @@
 
 #import "ViewController.h"
 #import "RSSFeedItem.h"
+#import "NSAttributedString+DTCoreText.h"
+#import <NSAttributedString+HTML.h>
 
 #import <SVProgressHUD.h>
 #import <AFNetworking/AFHTTPRequestOperation.h>
@@ -52,10 +54,10 @@
         // Try parsing the XML using different parsers...
         //
         
-//        [self parseXMLUsingGData:responseObject];
+        [self parseXMLUsingGData:responseObject];
 //        [self parseXMLUsingTouchXML:responseObject];
 //        [self parseXMLUsingRaptureXML:responseObject];
-        [self parseXMLUsingNSXMLParser:responseObject];
+//        [self parseXMLUsingNSXMLParser:responseObject];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"%@", [error localizedDescription]);
@@ -66,7 +68,38 @@
 
 - (void)parseXMLUsingGData:(NSData *)responseData
 {
+    GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:responseData error:nil];
+
+    NSArray *children = [document.rootElement nodesForXPath:@"channel/item" error:nil];
     
+    [children enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        
+        GDataXMLNode *itemNode = obj;
+        RSSFeedItem *newFeedItem = [[RSSFeedItem alloc] init];
+        
+        NSArray * nodeTitles = [itemNode nodesForXPath:@"title" error:nil];
+        if (nodeTitles.count) {
+            GDataXMLNode *titleNode = [nodeTitles firstObject];
+            //NSCharacterSet whitespaceAndNewlineCharacterSet trims the space before the string
+            newFeedItem.itemTitle = [[titleNode stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+        
+        NSArray * nodeLinks = [itemNode nodesForXPath:@"link" error:nil];
+        if (nodeLinks.count) {
+            GDataXMLNode *linkNode = [nodeLinks firstObject];
+            newFeedItem.itemUrl = [linkNode stringValue];
+        }
+        
+        NSArray * nodeDescription = [itemNode nodesForXPath:@"description" error:nil];
+        if (nodeDescription.count) {
+            GDataXMLNode *descriptionNode = [nodeDescription firstObject];
+            newFeedItem.itemDescription = [descriptionNode stringValue];
+        }
+        
+        [self.feedItems addObject:newFeedItem];
+        NSLog(@"%@", [itemNode stringValue]);
+    }];
+    [self.tableView reloadData];
 }
 
 - (void)parseXMLUsingTouchXML:(NSData *)responseData
@@ -157,7 +190,10 @@ didStartElement:(NSString *)elementName
     RSSFeedItem *feedItem = [self.feedItems objectAtIndex:indexPath.row];
     
     cell.textLabel.text = feedItem.itemTitle;
-    cell.detailTextLabel.text = feedItem.itemDescription;
+    NSAttributedString * attributedDescription = [[NSAttributedString alloc] initWithHTMLData:[feedItem.itemDescription dataUsingEncoding:NSUTF8StringEncoding]
+                                                                                      options:nil
+                                                                           documentAttributes:nil];
+    cell.detailTextLabel.text = [attributedDescription plainTextString];
     
     return cell;
 }
