@@ -22,6 +22,7 @@
 		7414D85A17FF051300A57178 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7414D85817FF051300A57178 /* InfoPlist.strings */; };
 		7414D85C17FF051300A57178 /* XMLParsingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7414D85B17FF051300A57178 /* XMLParsingTests.m */; };
 		7414D86717FF234500A57178 /* RSSFeedItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 7414D86617FF234500A57178 /* RSSFeedItem.m */; };
+		9EBD83E117FF438E00610BBD /* WebViewViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9EBD83E017FF438E00610BBD /* WebViewViewController.m */; };
 		C1C0A2F9B6654DCDA29862F8 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E0CE05D0E894E4A89A9E053 /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +59,8 @@
 		7414D86517FF234500A57178 /* RSSFeedItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RSSFeedItem.h; sourceTree = "<group>"; };
 		7414D86617FF234500A57178 /* RSSFeedItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RSSFeedItem.m; sourceTree = "<group>"; };
 		8E0CE05D0E894E4A89A9E053 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9EBD83DF17FF438E00610BBD /* WebViewViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebViewViewController.h; sourceTree = "<group>"; };
+		9EBD83E017FF438E00610BBD /* WebViewViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebViewViewController.m; sourceTree = "<group>"; };
 		D13F0441CF3A425192077888 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -126,6 +129,8 @@
 				7414D84217FF051200A57178 /* Main.storyboard */,
 				7414D84517FF051200A57178 /* ViewController.h */,
 				7414D84617FF051200A57178 /* ViewController.m */,
+				9EBD83DF17FF438E00610BBD /* WebViewViewController.h */,
+				9EBD83E017FF438E00610BBD /* WebViewViewController.m */,
 				7414D86517FF234500A57178 /* RSSFeedItem.h */,
 				7414D86617FF234500A57178 /* RSSFeedItem.m */,
 				7414D84817FF051200A57178 /* Images.xcassets */,
@@ -297,6 +302,7 @@
 			files = (
 				7414D84717FF051200A57178 /* ViewController.m in Sources */,
 				7414D84117FF051200A57178 /* AppDelegate.m in Sources */,
+				9EBD83E117FF438E00610BBD /* WebViewViewController.m in Sources */,
 				7414D83D17FF051200A57178 /* main.m in Sources */,
 				7414D86717FF234500A57178 /* RSSFeedItem.m in Sources */,
 			);

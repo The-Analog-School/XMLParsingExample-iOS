@@ -16,6 +16,9 @@
 #import <GDataXMLNode.h>
 #import <TouchXML.h>
 #import <RXMLElement.h>
+#import "WebViewViewController.h"
+#import <DTCoreText/NSAttributedString+HTML.h>
+#import <DTCoreText/NSAttributedString+DTCoreText.h>
 
 @interface ViewController ()
 
@@ -52,10 +55,10 @@
         // Try parsing the XML using different parsers...
         //
         
-//        [self parseXMLUsingGData:responseObject];
+        [self parseXMLUsingGData:responseObject];
 //        [self parseXMLUsingTouchXML:responseObject];
 //        [self parseXMLUsingRaptureXML:responseObject];
-        [self parseXMLUsingNSXMLParser:responseObject];
+        //[self parseXMLUsingNSXMLParser:responseObject];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"%@", [error localizedDescription]);
@@ -66,6 +69,24 @@
 
 - (void)parseXMLUsingGData:(NSData *)responseData
 {
+    GDataXMLDocument *xmlDoc = [[GDataXMLDocument alloc] initWithData:responseData error:nil];
+    
+    NSArray *root = [xmlDoc.rootElement nodesForXPath:@"channel/item" error:nil];
+    
+    [root enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        GDataXMLNode *newNode = obj;
+        RSSFeedItem *feedItem = [[RSSFeedItem alloc] init];
+        feedItem.itemTitle = [[[newNode nodesForXPath:@"title" error:nil] firstObject] stringValue];
+        feedItem.itemUrl = [[[newNode nodesForXPath:@"link" error:nil] firstObject] stringValue];
+        feedItem.itemDescription = [[[newNode nodesForXPath:@"description" error:nil] firstObject] stringValue];
+
+        [self.feedItems addObject:feedItem];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.tableView reloadData];
+        });
+
+    }];
     
 }
 
@@ -149,22 +170,32 @@ didStartElement:(NSString *)elementName
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
                                       reuseIdentifier:@"Cell"];
     }
     
     RSSFeedItem *feedItem = [self.feedItems objectAtIndex:indexPath.row];
-    
+    NSAttributedString *attritedDesc = [[NSAttributedString alloc] initWithHTMLData:[feedItem.itemDescription dataUsingEncoding:NSUTF8StringEncoding] options:nil documentAttributes:nil];
     cell.textLabel.text = feedItem.itemTitle;
-    cell.detailTextLabel.text = feedItem.itemDescription;
+    cell.detailTextLabel.text = [attritedDesc plainTextString];
     
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+
+        
+    [self performSegueWithIdentifier:@"ajsdfl" sender:self];
+    
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    WebViewViewController *newVC = segue.destinationViewController;
+    newVC.feedItem = [self.feedItems objectAtIndex:[self.tableView indexPathForSelectedRow].row];
+}
 @end
