@@ -53,9 +53,9 @@
         //
         
 //        [self parseXMLUsingGData:responseObject];
-//        [self parseXMLUsingTouchXML:responseObject];
+        [self parseXMLUsingTouchXML:responseObject];
 //        [self parseXMLUsingRaptureXML:responseObject];
-        [self parseXMLUsingNSXMLParser:responseObject];
+//        [self parseXMLUsingNSXMLParser:responseObject];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"%@", [error localizedDescription]);
@@ -66,12 +66,26 @@
 
 - (void)parseXMLUsingGData:(NSData *)responseData
 {
-    
+    GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:responseData
+                                                                  error:nil];
+    GDataXMLNode *channel = [[document.rootElement children] firstObject];
+    NSArray *items = [channel children];
+    [items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        GDataXMLNode *node = (GDataXMLNode *)obj;
+        NSLog(@"%@", node.name);
+    }];
 }
 
 - (void)parseXMLUsingTouchXML:(NSData *)responseData
 {
+    CXMLDocument *document = [[CXMLDocument alloc] initWithData:responseData options:0 error:nil];
     
+    CXMLNode *channel = [[document.rootElement children] firstObject];
+    NSArray *items = [channel children];
+    [items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        CXMLNode *node = (CXMLNode *)obj;
+        NSLog(@"%@", node.name);
+    }];
 }
 
 - (void)parseXMLUsingRaptureXML:(NSData *)responseData
