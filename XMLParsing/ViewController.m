@@ -8,6 +8,8 @@
 
 #import "ViewController.h"
 #import "RSSFeedItem.h"
+#import "NSAttributedString+DTCoreText.h"
+#import <NSAttributedString+HTML.h>
 
 #import <SVProgressHUD.h>
 #import <AFNetworking/AFHTTPRequestOperation.h>
@@ -66,26 +68,84 @@
 
 - (void)parseXMLUsingGData:(NSData *)responseData
 {
-    GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:responseData
-                                                                  error:nil];
-    GDataXMLNode *channel = [[document.rootElement children] firstObject];
-    NSArray *items = [channel children];
+    GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:responseData error:nil];
+    NSArray *items = [document.rootElement nodesForXPath:@"channel/item" error:nil];
+    
     [items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        GDataXMLNode *node = (GDataXMLNode *)obj;
-        NSLog(@"%@", node.name);
+        
+        GDataXMLNode *itemNode = obj;
+        RSSFeedItem *newFeedItem = [[RSSFeedItem alloc] init];
+        
+        // Title
+        NSArray * nodeTitles = [itemNode nodesForXPath:@"title" error:nil];
+        if (nodeTitles.count) {
+            GDataXMLNode *titleNode = [nodeTitles firstObject];
+
+            // Trim the white space before and after the title
+            newFeedItem.itemTitle = [[titleNode stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+        
+        // Link
+        NSArray * nodeLinks = [itemNode nodesForXPath:@"link" error:nil];
+        if (nodeLinks.count) {
+            GDataXMLNode *linkNode = [nodeLinks firstObject];
+            newFeedItem.itemUrl = [linkNode stringValue];
+        }
+        
+        // Description
+        NSArray * nodeDescription = [itemNode nodesForXPath:@"description" error:nil];
+        if (nodeDescription.count) {
+            GDataXMLNode *descriptionNode = [nodeDescription firstObject];
+            newFeedItem.itemDescription = [descriptionNode stringValue];
+        }
+        
+        [self.feedItems addObject:newFeedItem];
+        NSLog(@"%@", [itemNode stringValue]);
     }];
+    
+    [self.tableView reloadData];
 }
 
+/**
+ * The code here is almost exactly the same as the GData method.
+ */
 - (void)parseXMLUsingTouchXML:(NSData *)responseData
 {
     CXMLDocument *document = [[CXMLDocument alloc] initWithData:responseData options:0 error:nil];
+    NSArray *items = [document.rootElement nodesForXPath:@"channel/item" error:nil];
     
-    CXMLNode *channel = [[document.rootElement children] firstObject];
-    NSArray *items = [channel children];
     [items enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        CXMLNode *node = (CXMLNode *)obj;
-        NSLog(@"%@", node.name);
+        CXMLNode *itemNode = (CXMLNode *)obj;
+        RSSFeedItem *newFeedItem = [[RSSFeedItem alloc] init];
+        
+        // Title
+        NSArray * nodeTitles = [itemNode nodesForXPath:@"title" error:nil];
+        if (nodeTitles.count) {
+            CXMLNode *titleNode = [nodeTitles firstObject];
+            
+            // Trim the white space before and after the title
+            newFeedItem.itemTitle = [[titleNode stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        }
+        
+        // Link
+        NSArray * nodeLinks = [itemNode nodesForXPath:@"link" error:nil];
+        if (nodeLinks.count) {
+            CXMLNode *linkNode = [nodeLinks firstObject];
+            newFeedItem.itemUrl = [linkNode stringValue];
+        }
+        
+        // Description
+        NSArray * nodeDescription = [itemNode nodesForXPath:@"description" error:nil];
+        if (nodeDescription.count) {
+            CXMLNode *descriptionNode = [nodeDescription firstObject];
+            newFeedItem.itemDescription = [descriptionNode stringValue];
+        }
+        
+        [self.feedItems addObject:newFeedItem];
+        NSLog(@"%@", [itemNode stringValue]);
     }];
+    
+    [self.tableView reloadData];
 }
 
 - (void)parseXMLUsingRaptureXML:(NSData *)responseData
@@ -171,7 +231,10 @@ didStartElement:(NSString *)elementName
     RSSFeedItem *feedItem = [self.feedItems objectAtIndex:indexPath.row];
     
     cell.textLabel.text = feedItem.itemTitle;
-    cell.detailTextLabel.text = feedItem.itemDescription;
+    NSAttributedString * attributedDescription = [[NSAttributedString alloc] initWithHTMLData:[feedItem.itemDescription dataUsingEncoding:NSUTF8StringEncoding]
+                                                                                      options:nil
+                                                                           documentAttributes:nil];
+    cell.detailTextLabel.text = [attributedDescription plainTextString];
     
     return cell;
 }
